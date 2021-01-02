@@ -7,12 +7,6 @@ author: FazrilDev
 commands: 
   tugas:
     description:
-  kartu:
-    description: 
-  wrain:
-    description:
-  wclear:
-    description:
   kantin:
     description: 
   hub:
