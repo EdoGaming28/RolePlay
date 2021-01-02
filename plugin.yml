@@ -1,0 +1,19 @@
+name: RolePlay
+version: 2.5
+api: 3.0.0
+main: FazrilDev\Main
+author: FazrilDev
+
+commands: 
+  tugas:
+    description:
+  kartu:
+    description: 
+  wrain:
+    description:
+  wclear:
+    description:
+  kantin:
+    description: 
+  hub:
+    description: 
