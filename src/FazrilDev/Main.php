@@ -36,7 +36,7 @@ namespace FazrilDev;
  use pocketmine\plugin\PluginBase;
  use pocketmine\Player;
  use FazrilDev\Task\{MessageTask, CompleteTask, DayTask, WeatherTask, SleepTask, setMaxHealth};
- //use FazrilDev\Data\Data;
+ use FazrilDev\Data\Data;
  use pocketmine\scheduler\ClosureTask;
  use pocketmine\item\ItemBlock;
  use pocketmine\event\Listener;
@@ -135,7 +135,7 @@ class Main extends PluginBase implements Listener {
 			}
 			$this->getServer()->getAsyncPool()->submitTask(new DayTask());
 		}), 20, 20);
-		//$this->getScheduler()->scheduleDelayedRepeatingTask(new Data(), 20, 20);
+		this->getScheduler()->scheduleDelayedRepeatingTask(new Data(), 20, 20);
 		$this->registerNetherite();
 		self::$instance = $this;
 	}
