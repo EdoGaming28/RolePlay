@@ -93,10 +93,6 @@ namespace FazrilDev;
  
 class Main extends PluginBase implements Listener {
     
-    private static $instance;
-    public $timer;
-    public $weather;
-    
     /** @var array $pInTask1 */
     public $pInTask1 = [];
     
@@ -110,8 +106,6 @@ class Main extends PluginBase implements Listener {
     public $pInTask4 = [];
     
 	public function onEnable(){
-		$this->timer = 1;
-		$this->weather = mt_rand(0,1);
 		@date_default_timezone_set("Asia/Jakarta");
 		$this->kelas = new Config($this->getDataFolder()."kelas.yml", Config::YAML, array());
 		$this->Task1 = new Config($this->getDataFolder() . "task1.yml", Config::YAML, array());
