@@ -14,4 +14,5 @@ I will add config for all messages
 have bug & Suggestion? contact me on [whatsapp](https://wa.me/6281278134628)
 
 # Download
-Download phar file [here](https://www.mediafire.com/file/x0xsv5x8apz35a8/RolePlay_v5.5.phar/file)
+- Download phar file [here](https://www.mediafire.com/file/x0xsv5x8apz35a8/RolePlay_v5.5.phar/file)
+- Download zip file [here](https://github.com/FazrilDev/RolePlay/archive/main.zip)
