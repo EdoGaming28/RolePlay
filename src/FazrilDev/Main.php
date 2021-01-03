@@ -97,6 +97,18 @@ class Main extends PluginBase implements Listener {
     public $timer;
     public $weather;
     
+    /** @var array $pInTask1 */
+    public $pInTask1 = [];
+    
+    /** @var array $pInTask2 */
+    public $pInTask2 = [];
+    
+    /** @var array $pInTask3 */
+    public $pInTask3 = [];
+    
+    /** @var array $pInTask4 */
+    public $pInTask4 = [];
+    
 	public function onEnable(){
 		$this->timer = 1;
 		$this->weather = mt_rand(0,1);
@@ -135,7 +147,7 @@ class Main extends PluginBase implements Listener {
 			}
 			$this->getServer()->getAsyncPool()->submitTask(new DayTask());
 		}), 20, 20);
-		this->getScheduler()->scheduleDelayedRepeatingTask(new Data(), 20, 20);
+		$this->getScheduler()->scheduleDelayedRepeatingTask(new Data(), 20, 20);
 		$this->registerNetherite();
 		self::$instance = $this;
 	}
@@ -165,6 +177,20 @@ class Main extends PluginBase implements Listener {
 			        $sender->sendMessage("§7[§l§eSans§6SMP§r§7] §fKamu telah tiba di sekolah!");
 				}
 			break;
+			case "claim":
+				if(!$sender instanceof Player) return false;
+				if($this->isTask1($sender)){
+					$this->checkTask1($sender);
+				}else if($this->isTask2($sender)){
+					$this->checkTask2($sender);
+				}else if($this->isTask3($sender)){
+					$this->checkTask3($sender);
+				}else if($this->isTask4($sender)){
+					$this->checkTask4($sender);
+				}else{
+					//convey your anger here :v
+				}
+			break;
 			case "tugas":
 				if(!$sender instanceof Player){
 					$sender->sendMessage("in game");
@@ -173,7 +199,7 @@ class Main extends PluginBase implements Listener {
 					$sender->getLevel()->addSound(new ClickSound($sender));
 				}
 			break;
-			/*case "kartu": 
+			/*case "card": 
 				if(!$sender instanceof Player){
 					$sender->sendMessage("in game");
 				}else{
@@ -188,37 +214,6 @@ class Main extends PluginBase implements Listener {
 						    $this->UI($sender, $p);
 						}else{
 							$sender->sendMessage("§cPlayer not found");
-						}
-					}
-				}
-			break;
-			case "claim":
-				if(!$sender instanceof Player){
-					$sender->sendMessage("in game");
-				}else{
-					if($this->Task1->getNested(strtolower($sender->getName()).".done") === "true"){
-						if($this->Task2->exists(strtolower($sender->getName()))){
-							if($this->Task3->exists(strtolower($sender->getName()))){
-							}else{
-								$this->sendVoucher($sender);
-								$this->getServer()->broadcastMessage("§6[ §l".$sender->getName()."§r§6 ] §eBerhasil menyelesaikan Task#1");
-							}
-						}
-					}else if($this->Task2->getNested(strtolower($sender->getName()).".done") == "true"){
-						if($this->Task1->getNested(strtolower($sender->getName()).".done") == "true"){
-							if($this->Task3->exists(strtolower($sender->getName()))){
-							}else{
-								$this->sendVoucher($sender);
-								$this->getServer()->broadcastMessage("§6[ §l".$sender->getName()."§r§6 ] §eBerhasil menyelesaikan Task#2");
-							}
-						}
-					}else if($this->Task3->getNested(strtolower($sender->getName()).".done") == "true"){
-						if($this->Task2->getNested(strtolower($sender->getName()).".done") == "true"){
-							if($this->Task1->getNested(strtolower($sender->getName()).".done") == "true"){
-							}else{
-								$this->sendVoucher($sender);
-								$this->getServer()->broadcastMessage("§6[ §l".$sender->getName()."§r§6 ] §eBerhasil menyelesaikan Task#3");
-							}
 						}
 					}
 				}
@@ -423,11 +418,11 @@ class Main extends PluginBase implements Listener {
 			if($this->Task1->exists(strtolower($sender->getName()))){
 				$sender->getLevel()->addSound(new ClickSound($sender));
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if($this->Task2->exists(strtolower($sender->getName()))){
 				$sender->getLevel()->addSound(new ClickSound($sender));
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if(!$this->Task1->getNested(strtolower($sender->getName()).".makan") >= "0"){
 				$sender->getLevel()->addSound(new ClickSound($sender));
 				$this->Task1->setNested(strtolower($sender->getName()).".craft", "0");
@@ -436,23 +431,24 @@ class Main extends PluginBase implements Listener {
 			    $this->Task1->setNested(strtolower($sender->getName()).".done", "false");
 				$this->Task1->save();
 				$this->setSB($sender);
+				$this->pInTask1[$sender->getId()] = $sender;
 				$inventory->removeItem($task1);
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else{
 				$sender->getLevel()->addSound(new ClickSound($sender));
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}
 		}
 		if($item->getid() == 257){
 			$sender->getLevel()->addSound(new ClickSound($sender));
 			if($this->Task2->exists(strtolower($sender->getName()))){
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if($this->Task3->exists(strtolower($sender->getName()))){
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if($this->Task1->getNested(strtolower($sender->getName()).".done") === "true" && $this->Task1->getNested(strtolower($sender->getName()).".kayu") >= "64"){
 				$this->Task2->setNested(strtolower($sender->getName()).".stone", "0");
 				$this->Task2->setNested(strtolower($sender->getName()).".obsi", "0");
@@ -461,22 +457,23 @@ class Main extends PluginBase implements Listener {
 				$this->Task2->setNested(strtolower($sender->getName()).".done", "false");
 				$this->Task2->save();
 				$this->setSB($sender);
+				$this->pInTask2[$sender->getId()] = $sender;
 				$inventory->removeItem($task2);
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else{
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaiin tugas pertama dulu!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}
 		}
 		if($item->getid() == 276){
 			$sender->getLevel()->addSound(new ClickSound($sender));
 			if($this->Task3->exists(strtolower($sender->getName()))){
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if($this->Task3->getNested(strtolower($sender->getName()).".done") === "true"){
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if($this->Task2->getNested(strtolower($sender->getName()).".done") === "true"){
 				$this->Task3->setNested(strtolower($sender->getName()).".beef", "0");
 				$this->Task3->setNested(strtolower($sender->getName()).".chicken", "0");
@@ -486,22 +483,23 @@ class Main extends PluginBase implements Listener {
 				$this->Task3->setNested(strtolower($sender->getName()).".done", "false");
 				$this->Task3->save();
 				$this->setSB($sender);
+				$this->pInTask3[$sender->getId()] = $sender;
 				$inventory->removeItem($task3);
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else{
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaiin tugas kedua dulu!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}
 		}
 		if($item->getid() == 58){
 			$sender->getLevel()->addSound(new ClickSound($sender));
 			if($this->Task4->exists(strtolower($sender->getName()))){
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if($this->Task4->getNested(strtolower($sender->getName()).".done") === "true"){
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else if($this->Task3->getNested(strtolower($sender->getName()).".done") === "true"){
 				$this->Task4->setNested(strtolower($sender->getName()).".helmet", "0");
 				$this->Task4->setNested(strtolower($sender->getName()).".baju", "0");
@@ -510,18 +508,19 @@ class Main extends PluginBase implements Listener {
 				$this->Task4->setNested(strtolower($sender->getName()).".done", "false");
 				$this->Task4->save();
 				$this->setSB($sender);
+				$this->pInTask4[$sender->getId()] = $sender;
 				$inventory->removeItem($task4);
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}else{
 				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaiin tugas ketiga dulu!");
-				//$sender->removeWindow($inventory);
+				$sender->removeWindow($inventory);
 			}
 		}
 		if($item->getid() == 513){
 			$sender->getLevel()->addSound(new ClickSound($sender));
 			$sender->sendMessage("§aComing soon, please stay tun");
-			//$sender->removeWindow($inventory);
+			$sender->removeWindow($inventory);
 		}
 	}
 	
@@ -704,7 +703,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task1->setNested(strtolower($p->getName()).".makan", $this->Task1->getAll()[strtolower($p->getName())]["makan"] + 1);
 				$this->Task1->save();
 				$this->setSB($p);
-				$this->checkTask1($p);
+				
 			}
 		}
 	}
@@ -724,7 +723,7 @@ class Main extends PluginBase implements Listener {
 					    $this->Task1->setNested(strtolower($p->getName()).".craft", $this->Task1->getAll()[strtolower($p->getName())]["craft"] + 1);
 		                $this->Task1->save();
 				        $this->setSB($p);
-				        $this->checkTask1($p);
+				        
 				    }
 				}
 			}
@@ -733,7 +732,7 @@ class Main extends PluginBase implements Listener {
 					$this->Task4->setNested(strtolower($p->getName()).".helmet", $this->Task4->getAll()[strtolower($p->getName())]["helmet"] + 1);
 		            $this->Task4->save();
 				    $this->setSB($p);
-				    $this->checkTask4($p);
+				    
 				}
 			}
 			if($item instanceof NetheriteChestplate){
@@ -741,7 +740,7 @@ class Main extends PluginBase implements Listener {
 					$this->Task4->setNested(strtolower($p->getName()).".baju", $this->Task4->getAll()[strtolower($p->getName())]["baju"] + 1);
 		            $this->Task4->save();
 				    $this->setSB($p);
-				    $this->checkTask4($p);
+				    
 				}
 			}
 			if($item instanceof NetheriteLeggings){
@@ -749,7 +748,7 @@ class Main extends PluginBase implements Listener {
 					$this->Task4->setNested(strtolower($p->getName()).".celana", $this->Task4->getAll()[strtolower($p->getName())]["celana"] + 1);
 		            $this->Task4->save();
 				    $this->setSB($p);
-				    $this->checkTask4($p);
+				    
 				}
 			}
 			if($item instanceof NetheriteBoots){
@@ -757,7 +756,7 @@ class Main extends PluginBase implements Listener {
 					$this->Task4->setNested(strtolower($p->getName()).".boots", $this->Task4->getAll()[strtolower($p->getName())]["boots"] + 1);
 		            $this->Task4->save();
 				    $this->setSB($p);
-				    $this->checkTask4($p);
+				    
 				}
 			}
 		}
@@ -774,7 +773,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task1->setNested(strtolower($p->getName()).".kayu", $this->Task1->getAll()[strtolower($p->getName())]["kayu"] + 1);
 				$this->Task1->save();
 				$this->setSB($p);
-				$this->checkTask1($p);
+				
 			}
 		}
 		if($block->getId() === Block::LOG2){
@@ -782,7 +781,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task1->setNested(strtolower($p->getName()).".kayu", $this->Task1->getAll()[strtolower($p->getName())]["kayu"] + 1);
 				$this->Task1->save();
 				$this->setSB($p);
-				$this->checkTask1($p);
+				
 			}
 		}
 		if($block->getId() === 4){
@@ -790,7 +789,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task2->setNested(strtolower($p->getName()).".stone", $this->Task2->getAll()[strtolower($p->getName())]["stone"] + 1);
 				$this->Task2->save();
 				$this->setSB($p);
-				$this->checkTask2($p);
+				
 			}
 		}
 		if($block->getId() === 49){
@@ -798,7 +797,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task2->setNested(strtolower($p->getName()).".obsi", $this->Task2->getAll()[strtolower($p->getName())]["obsi"] + 1);
 				$this->Task2->save();
 				$this->setSB($p);
-				$this->checkTask2($p);
+				
 			}
 		}
 		if($block->getId() === 87){
@@ -806,7 +805,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task2->setNested(strtolower($p->getName()).".netherrack", $this->Task2->getAll()[strtolower($p->getName())]["netherrack"] + 1);
 				$this->Task2->save();
 				$this->setSB($p);
-				$this->checkTask2($p);
+				
 			}
 		}
 		if($block->getId() === Block::DIAMOND_ORE){
@@ -814,7 +813,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task2->setNested(strtolower($p->getName()).".diamond", $this->Task2->getAll()[strtolower($p->getName())]["diamond"] + 1);
 				$this->Task2->save();
 				$this->setSB($p);
-				$this->checkTask2($p);
+				
 			}
 		}
 	}
@@ -1188,7 +1187,7 @@ class Main extends PluginBase implements Listener {
 						$this->Task3->setNested(strtolower($dmg->getName()).".rotten", $this->Task3->getAll()[strtolower($dmg->getName())]["rotten"] + 1);
 						$this->Task3->save();
 						$this->setSB($dmg);
-						$this->checkTask3($dmg);
+						
 					}
 				}
 			}
@@ -1199,7 +1198,7 @@ class Main extends PluginBase implements Listener {
 						$this->Task3->setNested(strtolower($dmg->getName()).".bone", $this->Task3->getAll()[strtolower($dmg->getName())]["bone"] + 1);
 						$this->Task3->save();
 						$this->setSB($dmg);
-						$this->checkTask3($dmg);
+						
 					}
 				}
 			}
@@ -1210,7 +1209,7 @@ class Main extends PluginBase implements Listener {
 						$this->Task3->setNested(strtolower($dmg->getName()).".beef", $this->Task3->getAll()[strtolower($dmg->getName())]["beef"] + 1);
 						$this->Task3->save();
 						$this->setSB($dmg);
-						$this->checkTask3($dmg);
+						
 					}
 				}
 			}
@@ -1221,7 +1220,7 @@ class Main extends PluginBase implements Listener {
 						$this->Task3->setNested(strtolower($dmg->getName()).".wool", $this->Task3->getAll()[strtolower($dmg->getName())]["wool"] + 1);
 						$this->Task3->save();
 						$this->setSB($dmg);
-						$this->checkTask3($dmg);
+						
 					}
 				}
 			}
@@ -1232,7 +1231,7 @@ class Main extends PluginBase implements Listener {
 						$this->Task3->setNested(strtolower($dmg->getName()).".chicken", $this->Task3->getAll()[strtolower($dmg->getName())]["chicken"] + 1);
 						$this->Task3->save();
 						$this->setSB($dmg);
-						$this->checkTask3($dmg);
+						
 					}
 				}
 			}
@@ -1251,7 +1250,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task3->setNested(strtolower($p->getName()).".beef", $this->Task3->getAll()[strtolower($p->getName())]["beef"] + 1);
 				$this->Task3->save();
 				$this->setSB($p);
-				$this->checkTask3($p);
+				
 			}
 		}
 		if($item->getId() === 365 || $item->getId() === 288){
@@ -1259,7 +1258,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task3->setNested(strtolower($p->getName()).".chicken", $this->Task3->getAll()[strtolower($p->getName())]["chicken"] + 1);
 				$this->Task3->save();
 				$this->setSB($p);
-				$this->checkTask3($p);
+				
 			}
 		}
 		if($item->getId() === 35){
@@ -1267,7 +1266,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task3->setNested(strtolower($p->getName()).".wool", $this->Task3->getAll()[strtolower($p->getName())]["wool"] + 1);
 				$this->Task3->save();
 				$this->setSB($p);
-				$this->checkTask3($p);
+				
 			}
 		}
 		if($item->getId() === 352 || $item->getId() === 262){
@@ -1275,7 +1274,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task3->setNested(strtolower($p->getName()).".bone", $this->Task3->getAll()[strtolower($p->getName())]["bone"] + 1);
 				$this->Task3->save();
 				$this->setSB($p);
-				$this->checkTask3($p);
+				
 			}
 		}
 		if($item->getId() === 367){
@@ -1283,7 +1282,7 @@ class Main extends PluginBase implements Listener {
 				$this->Task3->setNested(strtolower($p->getName()).".rotten", $this->Task3->getAll()[strtolower($p->getName())]["rotten"] + 1);
 				$this->Task3->save();
 				$this->setSB($p);
-				$this->checkTask3($p);
+				
 			}
 		}
 	}*/
@@ -1404,6 +1403,7 @@ class Main extends PluginBase implements Listener {
 					    $this->Task1->save();
 					    $this->sendVoucher($p);
 						$this->setSB($p);
+						unset($this->pInTask1[$p->getId()]);
 					    $this->getServer()->broadcastMessage("§7[ §6§l".$p->getName()."§r§7 ] §eBerhasil menyelesaikan Task#1");
 					}
 				}
@@ -1420,6 +1420,7 @@ class Main extends PluginBase implements Listener {
 					        $this->Task2->save();
 					        $this->sendVoucher($p);
 						    $this->setSB($p);
+					        unset($this->pInTask2[$p->getId()]);
 					        $this->getServer()->broadcastMessage("§7[ §6§l".$p->getName()."§r§7 ] §eBerhasil menyelesaikan Task#2");
 					    }
 					}
@@ -1439,6 +1440,7 @@ class Main extends PluginBase implements Listener {
 					           $this->sendVoucher($p);
 					           $this->setSB($p);
 					           $this->getServer()->broadcastMessage("§7[ §6§l".$p->getName()."§r§7 ] §eBerhasil menyelesaikan Task#3");
+					           unset($this->pInTask3[$p->getId()]);
 					        }
 						}
 					}
@@ -1458,10 +1460,32 @@ class Main extends PluginBase implements Listener {
 							$this->sendVoucher($p);
 							$this->setSB($p);
 							$this->getServer()->broadcastMessage("§7[ §6§l".$p->getName()."§r§7 ] §eBerhasil menyelesaikan Task#4");
+							unset($this->pInTask4[$p->getId()]);
 						}
 					}
 				}
 			}
 		}
 	}
+	
+	public function isTask1(Player $player): bool
+    {
+        return isset($this->pInTask1[$player->getId()]);
+    }
+    
+    public function isTask2(Player $player): bool
+    {
+        return isset($this->pInTask2[$player->getId()]);
+    }
+    
+    public function isTask3(Player $player): bool
+    {
+        return isset($this->pInTask3[$player->getId()]);
+    }
+    
+    public function isTask4(Player $player): bool
+    {
+        return isset($this->pInTask4[$player->getId()]);
+    }
+	
 }
