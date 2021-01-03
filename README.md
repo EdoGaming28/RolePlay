@@ -1,5 +1,5 @@
 # RolePlay
-I made this plugin just to get rid of boredom due to a very long holiday xD
+I made this plugin just to get rid of boredom due to a very long holiday ;v
 
 # Depend
 - [PureEntitiesX](https://poggit.pmmp.io/r/93487/PureEntitiesX.phar)
