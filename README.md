@@ -1,3 +1,6 @@
+# RolePlay
+I made this plugin just to get rid of boredom due to a very long holiday xD
+
 # Depend
 - [PureEntitiesX](https://poggit.pmmp.io/r/93487/PureEntitiesX.phar)
 - [Scoreboards](https://github.com/TwistedAsylumMC/Scoreboards)
