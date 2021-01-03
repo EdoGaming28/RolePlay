@@ -7,8 +7,8 @@ I made this plugin just to get rid of boredom due to a very long holiday ;v
 - [FormAPI](https://poggit.pmmp.io/r/41263/FormAPI.phar)
 - [InvCrashFix](https://poggit.pmmp.io/r/94956/InvCrashFix.phar)
 
-# Sorry
-sorry, I didn't add the config to the plugin, so please edit it yourself if you want to change it okay XD
+# Next Update
+I will add config for all messages
 
 # Bug & Suggestion
 have bug & Suggestion? contact me on [whatsapp](https://wa.me/6281278134628)
