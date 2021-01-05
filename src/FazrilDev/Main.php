@@ -93,6 +93,9 @@ namespace FazrilDev;
  
 class Main extends PluginBase implements Listener {
     
+    private static $instance;
+    public $lang;
+    
     /** @var array $pInTask1 */
     public $pInTask1 = [];
     
@@ -106,17 +109,33 @@ class Main extends PluginBase implements Listener {
     public $pInTask4 = [];
     
 	public function onEnable(){
+		$this->timer = 1;
+		$this->weather = mt_rand(0,1);
 		@date_default_timezone_set("Asia/Jakarta");
 		$this->kelas = new Config($this->getDataFolder()."kelas.yml", Config::YAML, array());
 		$this->Task1 = new Config($this->getDataFolder() . "task1.yml", Config::YAML, array());
 		$this->Task2 = new Config($this->getDataFolder() . "task2.yml", Config::YAML, array());
 		$this->Task3 = new Config($this->getDataFolder() . "task3.yml", Config::YAML, array());
 		$this->Task4 = new Config($this->getDataFolder() . "task4.yml", Config::YAML, array());
+		new Config($this->getDataFolder() . 'lang.yml', Config::YAML, array(
+			"success-for-teleport" => "You in school now",
+			"pending-choose-task" => "you are working on this task",
+			"done-choose-task" => "you have completed this task",
+			"selected-choose-task" => "you succeeded in choosing this assignment",
+			"latest-choose-task" => "finish the previous task first",
+			"succes-buy" => "success to buy this item",
+			"failed-buy" => "you dont have enough money",
+			"success-convert-voucher-to-money" => "success to convert",
+			"server-ip" => "play.bapakesmp.com:19132",
+			"voucher-name" => "Konichiwa Voucher"
+		));
+		$this->lang = (array)yaml_parse_file($this->getDataFolder() . "lang.yml");
 		$this->uangJajan = new Config($this->getDataFolder() . "uang.yml", Config::YAML, array());
 		if(!$this->kelas->exists("member")){
 			$this->kelas->setNested("member", "0");
 		}
 		$this->kelas->save();
+		$this->saveResource("lang.yml");
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		$this->menu = InvMenu::create(InvMenu::TYPE_CHEST);
 		$this->kantin = InvMenu::create(InvMenu::TYPE_CHEST);
@@ -132,7 +151,7 @@ class Main extends PluginBase implements Listener {
 			        $y = intval($player->getY());
 			        $z = intval($player->getZ());
 			        $uang = $this->uangJajan->getNested(strtolower($player->getName()).".jumlah");
-			        $player->sendTip("§6Time: §r§o§e{$total} {$data} §l§f|| §r§6Money: §o§e{$uang}§r");
+			        //$player->sendTip("§6Time: §r§o§e{$total} {$data} §l§f|| §r§6Money: §o§e{$uang}§r");
 				}
 				if($this->Task4->getNested(strtolower($player->getName()).".done") === "true"){
 					$this->setSB($player);
@@ -168,21 +187,19 @@ class Main extends PluginBase implements Listener {
 					$level = $this->getServer()->getDefaultLevel();
 			        $sender->teleport(new Position($x, $y, $z, $level));
 			        $sender->getLevel()->addSound(new EndermanTeleportSound($sender));
-			        $sender->sendMessage("§7[§l§eSans§6SMP§r§7] §fKamu telah tiba di sekolah!");
+			        $sender->sendMessage($this->lang["success-for-teleport"]);
 				}
 			break;
 			case "claim":
 				if(!$sender instanceof Player) return false;
 				if($this->isTask1($sender)){
 					$this->checkTask1($sender);
-				}else if($this->isTask2($sender)){
+				}if($this->isTask2($sender)){
 					$this->checkTask2($sender);
-				}else if($this->isTask3($sender)){
+				}if($this->isTask3($sender)){
 					$this->checkTask3($sender);
-				}else if($this->isTask4($sender)){
+				}if($this->isTask4($sender)){
 					$this->checkTask4($sender);
-				}else{
-					//convey your anger here :v
 				}
 			break;
 			case "tugas":
@@ -411,11 +428,11 @@ class Main extends PluginBase implements Listener {
 		if($item->getid() == 275){
 			if($this->Task1->exists(strtolower($sender->getName()))){
 				$sender->getLevel()->addSound(new ClickSound($sender));
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
+				$sender->sendMessage($this->lang["pending-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if($this->Task2->exists(strtolower($sender->getName()))){
 				$sender->getLevel()->addSound(new ClickSound($sender));
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
+				$sender->sendMessage($this->lang["done-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if(!$this->Task1->getNested(strtolower($sender->getName()).".makan") >= "0"){
 				$sender->getLevel()->addSound(new ClickSound($sender));
@@ -427,21 +444,21 @@ class Main extends PluginBase implements Listener {
 				$this->setSB($sender);
 				$this->pInTask1[$sender->getId()] = $sender;
 				$inventory->removeItem($task1);
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
+				$sender->sendMessage($this->lang["selected-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else{
 				$sender->getLevel()->addSound(new ClickSound($sender));
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
+				$sender->sendMessage($this->lang["latest-choose-task"]);
 				$sender->removeWindow($inventory);
 			}
 		}
 		if($item->getid() == 257){
 			$sender->getLevel()->addSound(new ClickSound($sender));
 			if($this->Task2->exists(strtolower($sender->getName()))){
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
+				$sender->sendMessage($this->lang["pending-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if($this->Task3->exists(strtolower($sender->getName()))){
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
+				$sender->sendMessage($this->lang["done-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if($this->Task1->getNested(strtolower($sender->getName()).".done") === "true" && $this->Task1->getNested(strtolower($sender->getName()).".kayu") >= "64"){
 				$this->Task2->setNested(strtolower($sender->getName()).".stone", "0");
@@ -453,20 +470,20 @@ class Main extends PluginBase implements Listener {
 				$this->setSB($sender);
 				$this->pInTask2[$sender->getId()] = $sender;
 				$inventory->removeItem($task2);
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
+				$sender->sendMessage($this->lang["selected-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else{
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaiin tugas pertama dulu!");
+				$sender->sendMessage($this->lang["latest-choose-task"]);
 				$sender->removeWindow($inventory);
 			}
 		}
 		if($item->getid() == 276){
 			$sender->getLevel()->addSound(new ClickSound($sender));
 			if($this->Task3->exists(strtolower($sender->getName()))){
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
+				$sender->sendMessage($this->lang["pending-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if($this->Task3->getNested(strtolower($sender->getName()).".done") === "true"){
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
+				$sender->sendMessage($this->lang["done-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if($this->Task2->getNested(strtolower($sender->getName()).".done") === "true"){
 				$this->Task3->setNested(strtolower($sender->getName()).".beef", "0");
@@ -479,20 +496,20 @@ class Main extends PluginBase implements Listener {
 				$this->setSB($sender);
 				$this->pInTask3[$sender->getId()] = $sender;
 				$inventory->removeItem($task3);
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
+				$sender->sendMessage($this->lang["selected-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else{
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaiin tugas kedua dulu!");
+				$sender->sendMessage($this->lang["latest-choose-task"]);
 				$sender->removeWindow($inventory);
 			}
 		}
 		if($item->getid() == 58){
 			$sender->getLevel()->addSound(new ClickSound($sender));
 			if($this->Task4->exists(strtolower($sender->getName()))){
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sedang mengerjakan tugas ini. KERJAKAN DENGAN BENAR!");
+				$sender->sendMessage($this->lang["pending-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if($this->Task4->getNested(strtolower($sender->getName()).".done") === "true"){
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eKamu sudah menyelesaikan tugas ini, kamu mau bapak geplak?");
+				$sender->sendMessage($this->lang["done-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else if($this->Task3->getNested(strtolower($sender->getName()).".done") === "true"){
 				$this->Task4->setNested(strtolower($sender->getName()).".helmet", "0");
@@ -504,10 +521,10 @@ class Main extends PluginBase implements Listener {
 				$this->setSB($sender);
 				$this->pInTask4[$sender->getId()] = $sender;
 				$inventory->removeItem($task4);
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaikan tugas ini dengan tepat, cermat dan benar ya nak!");
+				$sender->sendMessage($this->lang["selected-choose-task"]);
 				$sender->removeWindow($inventory);
 			}else{
-				$sender->sendMessage("§7§l[§r§6 Pak Sunardi§l§7 ] §eSelesaiin tugas ketiga dulu!");
+				$sender->sendMessage($this->lang["latest-choose-task"]);
 				$sender->removeWindow($inventory);
 			}
 		}
@@ -565,19 +582,19 @@ class Main extends PluginBase implements Listener {
 				$this->removeUang($sender, 100);
 				$this->uangJajan->save();
 				$sender->getInventory()->addItem(Item::get(444, 0, 1));
-				$this->getServer()->broadcastMessage("§7[ §eShinka §6Voucher §7] §e{$sender->getName()} Telah menggunakan Uang jajannya untuk membeli 1× Eleytra");
+				$sender->sendMessage($this->lang["succes-buy"]);
 			}else{
-				$sender->sendMessage("§7[ §eShinka §6Voucher §7] §cUang jajan kamu tidak cukup nak!");
+				$sender->sendMessage($this->lang["failed-buy"]);
 			}
 		}
 		if($item == 742){
 			if($this->getUang($sender) >= 50){
 				$this->removeUang($sender, 50);
 				$this->uangJajan->save();
-				$sender->sendMessage("§7[ §eShinka §6Voucher §7] §fBerhasil menukarkan uang jajan kamu");
+				$sender->sendMessage($this->lang["succes-buy"]);
 				$sender->getInventory()->addItem(Item::get(742, 0, 1));
 			}else{
-				$sender->sendMessage("§7[ §eShinka §6Voucher §7] §cUang jajan kamu tidak cukup nak!");
+				$sender->sendMessage($this->lang["failed-buy"]);
 			}
 		}
 	}
@@ -585,14 +602,14 @@ class Main extends PluginBase implements Listener {
 		if($this->getUang($sender) >= 20){
 			$this->removeUang($sender, 20);
 			$this->uangJajan->save();
-			$sender->sendMessage("§7[ §eShinka §6Voucher §7] §fBerhasil menukarkan uang jajan kamu");
+			$sender->sendMessage($this->lang["succes-buy"]);
 			$sender->getInventory()->addItem($this->legendCake($sender));
 		}else{
-			$sender->sendMessage("§7[ §eShinka §6Voucher §7] §cUang jajan kamu tidak cukup nak!");
+			$sender->sendMessage($this->lang["failed-buy"]);
 		}
 	}
 	
-	public function onBannedCommand(PlayerCommandPreprocessEvent $event): void {
+	/*public function onBannedCommand(PlayerCommandPreprocessEvent $event): void {
 		$p = $event->getPlayer();
         $message = $event->getMessage();
         if($message[0] != "/") {
@@ -624,7 +641,7 @@ class Main extends PluginBase implements Listener {
                $event->setCancelled();
         	}
         }
-    }
+    }*/
 	
 	public function onPlayerChat(PlayerChatEvent $e){
 		$p = $e->getPlayer();
@@ -661,7 +678,7 @@ class Main extends PluginBase implements Listener {
             $player->getInventory()->setItemInHand($item);
         	$this->sendUang($player, 10);
             $this->uangJajan->save();
-        	$this->getServer()->broadcastMessage("§7[ §eShinka §6Voucher §7] §e{$player->getName()} Telah menggunakan Vouchernya untuk ditukarkan dengan uang jajan");
+        	$player->sendMessage($this->lang["success-convert-voucher-to-money"]);
         }
 	}
 	
@@ -677,8 +694,8 @@ class Main extends PluginBase implements Listener {
 	
 	public function onEnterBed(PlayerBedEnterEvent $event)
 	{
-		$sender = $event->getPlayer();
-		$this->getScheduler()->scheduleRepeatingTask(new SleepTask($this, $sender), 10);
+		/*$sender = $event->getPlayer();
+		$this->getScheduler()->scheduleRepeatingTask(new SleepTask($this, $sender), 10);*/
 		$x = $sender->getX();
 		$y = $sender->getY();
 		$z = $sender->getZ();
@@ -881,7 +898,7 @@ class Main extends PluginBase implements Listener {
 			$api->setLine($sender, 6, "§6Collect Log: §e$kayu");
 			$api->setLine($sender, 7, "§6Eat: §e$makan");
 			$api->setLine($sender, 8, "               ");
-			$api->setLine($sender, 9, "§l§eplay.shinkapoi.xyz:19132");
+			$api->setLine($sender, 9, $this->lang["server-ip"]);
 			$api->getObjectiveName($sender);
 		}
 		
@@ -932,7 +949,7 @@ class Main extends PluginBase implements Listener {
 			    $api->setLine($sender, 7, "§6Diamond Ore: §e$dm");
 			    $api->setLine($sender, 8, "§6Netherrack: §e$nether");
 			    $api->setLine($sender, 9, "               ");
-			    $api->setLine($sender, 10, "§l§eplay.shinkapoi.xyz:19132");
+			    $api->setLine($sender, 10, $this->lang["server-ip"]);
 			    $api->getObjectiveName($sender);
 			}
 		}
@@ -992,7 +1009,7 @@ class Main extends PluginBase implements Listener {
 			    $api->setLine($sender, 8, "§6Skeleton: §e$bone");
 			    $api->setLine($sender, 9, "§6Zombie: §e$rotten");
 			    $api->setLine($sender, 10, "               ");
-		        $api->setLine($sender, 11, "§l§eplay.shinkapoi.xyz:19132");
+		        $api->setLine($sender, 11, $this->lang["server-ip"]);
 			    $api->getObjectiveName($sender);
 			}
 		}
@@ -1044,83 +1061,10 @@ class Main extends PluginBase implements Listener {
 			    $api->setLine($sender, 7, "§6Leggings: §e$leg");
 			    $api->setLine($sender, 8, "§6Boots: §e$boot");
 			    $api->setLine($sender, 9, "               ");
-		        $api->setLine($sender, 10, "§l§eplay.shinkapoi.xyz:19132");
+		        $api->setLine($sender, 10, $this->lang["server-ip"]);
 			    $api->getObjectiveName($sender);
 			}
 		}
-		
-		/*if($this->Task5->getNested(strtolower($sender->getName()).".page") == 1 && $this->Task5->getNested(strtolower($sender->getName()).".done") === "false" && $this->Task5->exists(strtolower($sender->getName()))){
-			$day = date("d");
-            $month = date("m");
-            $year = date("Y");
-            $api->new($sender, "Quest", "§l§6Quest");
-			$api->setLine($sender, 1, "§7$day $month $year");
-			$api->setLine($sender, 2, "          ");
-			$api->setLine($sender, 3, "§6§lTask: §e5");
-			$api->setLine($sender, 4, "§7(1/5)");
-			$api->setLine($sender, 5, "§6Pergi ke coordinate: §e");
-			$api->setLine($sender, 6, "§l§eplay.shinkapoi.xyz:19132");
-			$api->getObjectiveName($sender);
-		}
-		
-		if($this->Task5->getNested(strtolower($sender->getName()).".page") == 2 && $this->Task5->getNested(strtolower($sender->getName()).".done") === "false" && $this->Task5->exists(strtolower($sender->getName()))){
-			$day = date("d");
-            $month = date("m");
-            $year = date("Y");
-            $api->new($sender, "Quest", "§l§6Quest");
-			$api->setLine($sender, 1, "§7$day $month $year");
-			$api->setLine($sender, 2, "          ");
-			$api->setLine($sender, 3, "§6§lTask: §e5");
-			$api->setLine($sender, 4, "§7(2/4)");
-			$api->setLine($sender, 5, "§6Baca buku yang ada di inventory kamu");
-			$api->setLine($sender, 6, "§6Note: §eTolong right-click untuk membaca!");
-			$api->setLine($sender, 7, "§eJika tidak data kamu akan hilang!");
-			$api->setLine($sender, 8, "§l§eplay.shinkapoi.xyz:19132");
-			$api->getObjectiveName($sender);
-		}
-		
-		if($this->Task5->getNested(strtolower($sender->getName()).".page") == 3 && $this->Task5->getNested(strtolower($sender->getName()).".done") === "false" && $this->Task5->exists(strtolower($sender->getName()))){
-			$doneq = $this->Task5->getNested(strtolower($sender->getName()).".pos");
-			if($doneq === "done"){
-				$done = "§aDone";
-			}else{
-				$done = "§cFalse";
-			}
-			$done1q = $this->Task5->getNested(strtolower($sender->getName()).".pos1");
-			if($done1q === "done"){
-				$done1 = "§aDone";
-			}else{
-				$done1 = "§cFalse";
-			}
-			$day = date("d");
-            $month = date("m");
-            $year = date("Y");
-            $api->new($sender, "Quest", "§l§6Quest");
-			$api->setLine($sender, 1, "§7$day $month $year");
-			$api->setLine($sender, 2, "          ");
-			$api->setLine($sender, 3, "§6§lTask: §e5");
-			$api->setLine($sender, 4, "§7(3/4)");
-			$api->setLine($sender, 5, "§6Pos 1: $done");
-			$api->setLine($sender, 6, "§6Pos 2: $done1");
-			$api->setLine($sender, 7, "§l§eplay.shinkapoi.xyz:19132");
-			$api->getObjectiveName($sender);
-		}
-		
-		if($this->Task5->getNested(strtolower($sender->getName()).".page") == 4 && $this->Task5->getNested(strtolower($sender->getName()).".done") === "false" && $this->Task5->exists(strtolower($sender->getName()))){
-			$day = date("d");
-            $month = date("m");
-            $year = date("Y");
-            $api->new($sender, "Quest", "§l§6Quest");
-			$api->setLine($sender, 1, "§7$day $month $year");
-			$api->setLine($sender, 2, "          ");
-			$api->setLine($sender, 3, "§6§lTask: §e5");
-			$api->setLine($sender, 4, "§7(4/4)");
-			$api->setLine($sender, 5, "§6FAZRIL17: $faz");
-			$api->setLine($sender, 6, "§6Kirazuwu: $ki");
-			$api->setLine($sender, 7, "§6CrystaBRYT ajg: $cry");
-			$api->setLine($sender, 8, "§l§eplay.shinkapoi.xyz:19132");
-			$api->getObjectiveName($sender);
-		}*/
 		
 		if($this->Task4->getNested(strtolower($sender->getName()).".done") === "true"){
 			$day = date("d");
@@ -1139,7 +1083,7 @@ class Main extends PluginBase implements Listener {
 			$api->setLine($sender, 5, "§6Uang: §e{$this->getUang($sender)}");
 			$api->setLine($sender, 6, "§6Online: §e{$online}/50");
 			$api->setLine($sender, 7, "       ");
-			$api->setLine($sender, 8, "§l§eplay.shinkapoi.xyz:19132");
+			$api->setLine($sender, 8, $this->lang["server-ip"]);
 			$api->getObjectiveName($sender);
 		}
 		return $api;
@@ -1378,7 +1322,7 @@ class Main extends PluginBase implements Listener {
 		
 		$reward = ItemFactory::get(Item::PAPER, 0);
 		$reward->getNamedTag()->setString("shinka", "voucher");
-		$reward->setCustomName("§bShinka §6Voucher");
+		$reward->setCustomName($this->lang["voucher-name"]);
 		$reward->setLore([
 			"§eVoucher ini bisa untuk membeli makanan, lahan dan barang-barang lainnya",
 			"§eRight-Click untuk menukarkannya dengan uang saku"
